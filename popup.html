@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusPal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            width: 320px;
+            min-height: 400px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .tagline {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .stats-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .stat-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .timer-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .timer-display {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .timer-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+        }
+        
+        .settings-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .settings-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .toggle.active {
+            background: #4CAF50;
+        }
+        
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle.active::after {
+            transform: translateX(26px);
+        }
+        
+        .quote-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .quote-text {
+            font-style: italic;
+            font-size: 14px;
+            line-height: 1.4;
+            opacity: 0.9;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎯 FocusPal</div>
+        <div class="tagline">Stay focused, stay productive</div>
+    </div>
+    
+    <div class="stats-container">
+        <div class="stat-item">
+            <span class="stat-label">Distractions Blocked Today</span>
+            <span class="stat-value" id="blockedCount">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Focus Streak</span>
+            <span class="stat-value" id="focusStreak">0 min</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Status</span>
+            <span class="stat-value" id="extensionStatus">Active</span>
+        </div>
+    </div>
+    
+    <div class="timer-container">
+        <div class="timer-display" id="timerDisplay">25:00</div>
+        <div class="timer-label" id="timerLabel">Pomodoro Timer</div>
+        <div class="controls">
+            <button class="btn btn-primary" id="startTimer">Start</button>
+            <button class="btn btn-secondary" id="pauseTimer">Pause</button>
+            <button class="btn btn-danger" id="resetTimer">Reset</button>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="btn btn-secondary" id="toggleExtension">Pause FocusPal</button>
+        <button class="btn btn-secondary" id="openSettings">Settings</button>
+    </div>
+    
+    <div class="settings-section hidden" id="settingsSection">
+        <div class="settings-title">Settings</div>
+        <div class="setting-item">
+            <span>Notifications</span>
+            <div class="toggle active" id="notificationsToggle"></div>
+        </div>
+        <div class="setting-item">
+            <span>Sound Alerts</span>
+            <div class="toggle" id="soundToggle"></div>
+        </div>
+        <div class="setting-item">
+            <span>Strict Mode</span>
+            <div class="toggle" id="strictModeToggle"></div>
+        </div>
+    </div>
+    
+    <div class="quote-container">
+        <div class="quote-text" id="motivationalQuote">
+            "The way to get started is to quit talking and begin doing." - Walt Disney
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

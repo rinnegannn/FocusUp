@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "FocusPal",
+  "version": "1.0.0",
+  "description": "Stay productive with gentle nudges when you visit distracting websites",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "notifications",
+    "alarms"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "FocusPal - Stay Focused"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["focus.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
