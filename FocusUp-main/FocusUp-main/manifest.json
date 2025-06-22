@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "FocusUp",
+  "version": "1.0.0",
+  "description": "Stay productive, Stay focused. Avoid distracting websites.",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "notifications",
+    "alarms"
+  ],
+  "icons": {
+    "100": "focusup-icon.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "FocusUp - Stay Focused",
+    "default_icon": "focusup-icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["focus.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
