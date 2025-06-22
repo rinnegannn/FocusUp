@@ -10,70 +10,81 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            color: white;
         }
-        
+
         .focus-container {
-            text-align: center;
-            max-width: 600px;
             background: rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 20px;
             backdrop-filter: blur(10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.5s ease-out;
         }
-        
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         .focus-icon {
-            font-size: 80px;
+            font-size: 4rem;
             margin-bottom: 20px;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.05); }
         }
-        
+
         h1 {
-            font-size: 48px;
+            font-size: 2.5rem;
             margin-bottom: 20px;
             font-weight: bold;
         }
-        
+
         .subtitle {
-            font-size: 20px;
+            font-size: 1.2rem;
             margin-bottom: 30px;
             opacity: 0.9;
         }
-        
-        .quote {
-            font-size: 18px;
-            font-style: italic;
-            margin-bottom: 40px;
-            padding: 20px;
+
+        .quote-section {
             background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
             border-radius: 15px;
+            margin: 30px 0;
+            font-style: italic;
+            font-size: 1.1rem;
             line-height: 1.6;
         }
-        
-        .actions {
+
+        .button-group {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             justify-content: center;
+            margin-top: 30px;
             flex-wrap: wrap;
-            margin-bottom: 30px;
         }
-        
+
         .btn {
             padding: 15px 30px;
             border: none;
@@ -82,142 +93,306 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            min-width: 150px;
             text-decoration: none;
             display: inline-block;
         }
-        
+
         .btn-primary {
             background: #4CAF50;
             color: white;
         }
-        
+
         .btn-primary:hover {
             background: #45a049;
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
         }
-        
+
         .btn-secondary {
             background: rgba(255, 255, 255, 0.2);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        
+
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
         }
-        
-        .timer-display {
-            font-size: 64px;
-            font-family: 'Courier New', monospace;
-            margin: 30px 0;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+
+        .btn-warning {
+            background: #FF9800;
+            color: white;
         }
-        
-        .productivity-tips {
+
+        .btn-warning:hover {
+            background: #F57C00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .stats-section {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-item {
             background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .tips-section {
             margin-top: 30px;
             text-align: left;
         }
-        
-        .productivity-tips h3 {
+
+        .tips-section h3 {
+            text-align: center;
             margin-bottom: 15px;
-            font-size: 20px;
         }
-        
-        .productivity-tips ul {
+
+        .tips-list {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
             list-style: none;
-            padding: 0;
         }
-        
-        .productivity-tips li {
-            margin-bottom: 10px;
-            padding-left: 25px;
-            position: relative;
+
+        .tips-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .productivity-tips li::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            color: #4CAF50;
-            font-weight: bold;
+
+        .tips-list li:last-child {
+            border-bottom: none;
         }
-        
-        .footer {
-            margin-top: 40px;
-            opacity: 0.7;
-            font-size: 14px;
+
+        .tips-list li::before {
+            content: "💡 ";
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .focus-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="focus-container">
+        <div class="focus-icon">🎯</div>
         <h1>Stay Focused!</h1>
         <p class="subtitle">You were redirected from a distracting website</p>
         
-        <div class="quote" id="motivationalQuote">
-            "The way to get started is to quit talking and begin doing." - Walt Disney
+        <div class="quote-section">
+            <p id="motivationalQuote">
+                "The successful warrior is the average person with laser-like focus." - Bruce Lee
+            </p>
         </div>
-        
-        <div class="timer-display" id="breakTimer">05:00</div>
-        
-        <div class="actions">
+
+        <div class="stats-section">
+            <div class="stat-item">
+                <span class="stat-number" id="blockedCount">0</span>
+                <span class="stat-label">Sites Blocked Today</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="focusStreak">0</span>
+                <span class="stat-label">Focus Streak (min)</span>
+            </div>
+        </div>
+
+        <div class="button-group">
             <button class="btn btn-primary" id="startFocusSession">
-                Start 25min Focus Session
+                🍅 Start Focus Session
             </button>
-            <button class="btn btn-secondary" id="takeBreak">
-                Take 5min Break
+            <button class="btn btn-secondary" id="goToProductiveSite">
+                📚 Go to Productive Site
             </button>
-            <button class="btn btn-secondary" onclick="window.history.back()">
-                Go Back
+            <button class="btn btn-warning" id="takeBreak">
+                ☕ Take 5 Min Break
             </button>
         </div>
-        
-        <div class="productivity-tips">
-            <h3>Quick Productivity Tips</h3>
-            <ul>
-                <li>Try the Pomodoro Technique: 25 min work, 5 min break</li>
+
+        <div class="tips-section">
+            <h3>💪 Focus Tips</h3>
+            <ul class="tips-list">
+                <li>Try the Pomodoro Technique: 25 minutes of focused work, 5 minute break</li>
                 <li>Remove distractions from your workspace</li>
-                <li>Set specific, achievable goals for each session</li>
-                <li>Take regular breaks to maintain focus</li>
-                <li>Reward yourself after completing tasks</li>
+                <li>Set specific, achievable goals for each focus session</li>
+                <li>Reward yourself after completing focused work</li>
+                <li>Practice mindfulness to improve concentration</li>
             </ul>
         </div>
-        
-        <div class="footer">
-            <p>Powered by FocusUp • Your productivity companion</p>
-        </div>
     </div>
-    
+
     <script>
         class FocusPage {
             constructor() {
-                this.breakTimer = null;
-                this.timeLeft = 5 * 60; // 5 minutes
-                this.isBreakActive = false;
                 this.init();
             }
-            
-            init() {
+
+            async init() {
                 this.loadRandomQuote();
-                this.setupEventListeners();
-                this.updateTimerDisplay();
+                this.loadStats();
+                this.bindEvents();
             }
-            
-            setupEventListeners() {
+
+            bindEvents() {
                 document.getElementById('startFocusSession').addEventListener('click', () => {
                     this.startFocusSession();
                 });
-                
+
+                document.getElementById('goToProductiveSite').addEventListener('click', () => {
+                    this.goToProductiveSite();
+                });
+
                 document.getElementById('takeBreak').addEventListener('click', () => {
-                    this.startBreakTimer();
+                    this.takeBreak();
                 });
             }
-            
+
+            async startFocusSession() {
+                try {
+                    // Try to communicate with the background script to start timer
+                    if (typeof chrome !== 'undefined' && chrome.runtime) {
+                        await chrome.runtime.sendMessage({ action: 'startTimer' });
+                        
+                        // Show success message
+                        this.showMessage('Focus session started! 🎉', 'success');
+                        
+                        // Redirect to a productive site after a delay
+                        setTimeout(() => {
+                            this.goToProductiveSite();
+                        }, 2000);
+                    } else {
+                        this.showMessage('Timer started! Focus for 25 minutes.', 'success');
+                    }
+                } catch (error) {
+                    console.error('Error starting focus session:', error);
+                    this.showMessage('Focus session started! Stay disciplined for 25 minutes.', 'success');
+                }
+            }
+
+            goToProductiveSite() {
+                const productiveSites = [
+                    'https://www.wikipedia.org',
+                    'https://www.khanacademy.org',
+                    'https://www.coursera.org',
+                    'https://www.edx.org',
+                    'https://www.duolingo.com',
+                    'https://www.codecademy.com',
+                    'https://www.freecodecamp.org',
+                    'https://www.ted.com',
+                    'https://www.medium.com',
+                    'https://www.notion.so'
+                ];
+
+                const randomSite = productiveSites[Math.floor(Math.random() * productiveSites.length)];
+                window.location.href = randomSite;
+            }
+
+            async takeBreak() {
+                try {
+                    // Grant temporary access through background script
+                    if (typeof chrome !== 'undefined' && chrome.runtime) {
+                        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+                        if (tabs[0]) {
+                            // Go back to previous page
+                            window.history.back();
+                            
+                            // Grant temporary access
+                            await chrome.runtime.sendMessage({ 
+                                action: 'grantTempAccess', 
+                                site: window.location.hostname 
+                            });
+                        }
+                    } else {
+                        // Fallback - just go back
+                        window.history.back();
+                    }
+                    
+                    this.showMessage('5-minute break granted! Use it wisely. ⏰', 'warning');
+                } catch (error) {
+                    console.error('Error taking break:', error);
+                    window.history.back();
+                }
+            }
+
+            showMessage(text, type = 'info') {
+                // Create temporary message element
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === 'success' ? '#4CAF50' : type === 'warning' ? '#FF9800' : '#2196F3'};
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    font-weight: 600;
+                    z-index: 1000;
+                    animation: slideInRight 0.3s ease-out;
+                    max-width: 300px;
+                `;
+                
+                message.textContent = text;
+                document.body.appendChild(message);
+
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    message.style.animation = 'slideOutRight 0.3s ease-out';
+                    setTimeout(() => message.remove(), 300);
+                }, 3000);
+            }
+
+            async loadStats() {
+                try {
+                    if (typeof chrome !== 'undefined' && chrome.storage) {
+                        const result = await chrome.storage.sync.get(['blockedCount', 'focusStreak']);
+                        document.getElementById('blockedCount').textContent = result.blockedCount || 0;
+                        document.getElementById('focusStreak').textContent = result.focusStreak || 0;
+                    }
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                    // Set default values
+                    document.getElementById('blockedCount').textContent = '0';
+                    document.getElementById('focusStreak').textContent = '0';
+                }
+            }
+
             loadRandomQuote() {
                 const quotes = [
                     "The way to get started is to quit talking and begin doing. - Walt Disney",
@@ -225,70 +400,52 @@
                     "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
                     "The future depends on what you do today. - Mahatma Gandhi",
                     "Focus on being productive instead of busy. - Tim Ferriss",
+                    "You don't have to be great to get started, but you have to get started to be great. - Les Brown",
                     "Discipline is choosing between what you want now and what you want most. - Abraham Lincoln",
                     "The successful warrior is the average person with laser-like focus. - Bruce Lee",
-                    "Concentrate all your thoughts upon the work at hand. - Alexander Graham Bell"
+                    "Concentrate all your thoughts upon the work at hand. The sun's rays do not burn until brought to a focus. - Alexander Graham Bell",
+                    "The key to success is to focus our conscious mind on things we desire not things we fear. - Brian Tracy",
+                    "Where focus goes, energy flows and results show. - Tony Robbins",
+                    "Starve your distractions, feed your focus. - Anonymous",
+                    "Focus is not about doing more. It's about doing what matters. - Anonymous"
                 ];
-                
+
                 const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
                 document.getElementById('motivationalQuote').textContent = randomQuote;
             }
-            
-            startFocusSession() {
-                // Send message to background script to start focus session
-                if (chrome.runtime) {
-                    chrome.runtime.sendMessage({ action: 'startFocusFromPage' });
-                }
-                
-                // Redirect to a productive site or new tab
-                window.location.href = 'https://www.google.com';
-            }
-            
-            startBreakTimer() {
-                if (this.isBreakActive) return;
-                
-                this.isBreakActive = true;
-                const button = document.getElementById('takeBreak');
-                button.textContent = 'Break in Progress...';
-                button.disabled = true;
-                
-                this.breakTimer = setInterval(() => {
-                    this.timeLeft--;
-                    this.updateTimerDisplay();
-                    
-                    if (this.timeLeft <= 0) {
-                        this.completeBreak();
-                    }
-                }, 1000);
-            }
-            
-            updateTimerDisplay() {
-                const minutes = Math.floor(this.timeLeft / 60);
-                const seconds = this.timeLeft % 60;
-                const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                document.getElementById('breakTimer').textContent = display;
-            }
-            
-            completeBreak() {
-                clearInterval(this.breakTimer);
-                this.isBreakActive = false;
-                
-                const button = document.getElementById('takeBreak');
-                button.textContent = 'Break Complete!';
-                button.style.background = '#4CAF50';
-                
-                setTimeout(() => {
-                    button.textContent = 'Take Another Break';
-                    button.disabled = false;
-                    button.style.background = '';
-                    this.timeLeft = 5 * 60;
-                    this.updateTimerDisplay();
-                }, 2000);
-            }
         }
-        
-        // Initialize focus page
-        new FocusPage();
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize the focus page
+        document.addEventListener('DOMContentLoaded', () => {
+            new FocusPage();
+        });
     </script>
 </body>
 </html>

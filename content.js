@@ -1,6 +1,6 @@
 /*
 -------------------------------------------------------
-Content script for FocusUp Chrome Extension
+Content script for FocusUp Chrome Extension - FIXED
 -------------------------------------------------------
 Project:    SpurHacks
 Team:       23gibbs
@@ -15,20 +15,31 @@ class FocusUpContent {
         this.overlayVisible = false;
         // Variable for the settings
         this.settings = {};
+        // Variable to track if we've shown initial overlay for this session
+        this.initialOverlayShown = false;
         this.init();
     }
     
     async init() {
+        console.log('FocusUp content script initializing...');
+        
         // Load settings
         await this.loadSettings();
+        console.log('Settings loaded:', this.settings);
         
         // Listen for messages from background script
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             this.handleMessage(message, sender, sendResponse);
         });
         
-        // Check if current site is distracting
+        // FIXED: Immediate check for current site
         this.checkCurrentSite();
+        
+        // FIXED: Also check after a short delay to ensure page is fully loaded
+        setTimeout(() => {
+            console.log('Delayed site check...');
+            this.checkCurrentSite();
+        }, 2000);
     }
     
     async loadSettings() {
@@ -65,47 +76,189 @@ class FocusUpContent {
         ];
         
         const hostname = window.location.hostname.toLowerCase().replace(/^www\./, '');
+        const currentUrl = window.location.href;
+        
+        console.log('Checking current site:', hostname, 'URL:', currentUrl);
         
         const isDistracting = distractingSites.some(site => 
             hostname.includes(site) || site.includes(hostname)
         );
         
-        if (isDistracting && this.settings.extensionEnabled !== false) {
-            this.showFocusOverlay();
+        console.log('Is distracting:', isDistracting);
+        console.log('Extension enabled:', this.settings.extensionEnabled !== false);
+        console.log('Initial overlay shown:', this.initialOverlayShown);
+        console.log('Has temp access:', this.hasTemporaryAccess());
+        
+        // FIXED: Only show overlay if site is distracting, extension is enabled, 
+        // we haven't shown it yet, and we don't have temporary access
+        if (isDistracting && 
+            this.settings.extensionEnabled !== false && 
+            !this.initialOverlayShown && 
+            !this.hasTemporaryAccess()) {
+            
+            console.log('Showing initial focus overlay');
+            this.showInitialFocusOverlay();
+            this.initialOverlayShown = true;
         }
     }
     
-    showFocusOverlay() {
+    // FIXED: Renamed to distinguish from 5-minute warning overlay
+    showInitialFocusOverlay() {
         if (this.overlayVisible) return;
         
+        this.createFocusOverlay('initial', {
+            title: 'Time to Focus!',
+            message: 'You\'re visiting a potentially distracting site. Remember your goals!',
+            quote: '"The successful warrior is the average person with laser-like focus." - Bruce Lee',
+            primaryButton: 'Stay Focused',
+            secondaryButton: 'Continue (5 min)'
+        });
+    }
+    
+    // NEW: Show 5-minute warning overlay
+    show5MinuteWarning(site, timeSpent) {
+        if (this.overlayVisible) return;
+        
+        const minutes = Math.floor(timeSpent / 60);
+        const seconds = timeSpent % 60;
+        
+        this.createFocusOverlay('5minute', {
+            title: '⏰ 5-Minute Focus Alert!',
+            message: `You've been on ${site} for ${minutes}m ${seconds}s. Time to refocus!`,
+            quote: '"Discipline is choosing between what you want now and what you want most."',
+            primaryButton: 'Get Back to Work',
+            secondaryButton: 'Give me 5 more minutes'
+        });
+    }
+    
+    // FIXED: Generalized overlay creation method
+    createFocusOverlay(type, config) {
         const overlay = document.createElement('div');
-        overlay.id = 'focusup-overlay';
+        overlay.id = `focusup-overlay-${type}`;
+        overlay.className = 'focusup-overlay';
         overlay.innerHTML = `
             <div class="focusup-modal">
                 <div class="focusup-header">
-                    <h2>Time to Focus!</h2>
-                    <button class="focusup-close" id="focusup-close">×</button>
+                    <h2>${config.title}</h2>
+                    <button class="focusup-close" data-close="${type}">×</button>
                 </div>
                 <div class="focusup-content">
-                    <p>You're visiting a potentially distracting site. Remember your goals!</p>
+                    <p>${config.message}</p>
                     <div class="focusup-quote">
-                        <em>"The successful warrior is the average person with laser-like focus." - Bruce Lee</em>
+                        <em>${config.quote}</em>
                     </div>
                     <div class="focusup-actions">
-                        <button class="focusup-btn focusup-btn-primary" id="focusup-stay-focused">
-                            Stay Focused
+                        <button class="focusup-btn focusup-btn-primary" data-action="primary" data-type="${type}">
+                            ${config.primaryButton}
                         </button>
-                        <button class="focusup-btn focusup-btn-secondary" id="focusup-continue">
-                            Continue (5 min)
+                        <button class="focusup-btn focusup-btn-secondary" data-action="secondary" data-type="${type}">
+                            ${config.secondaryButton}
                         </button>
                     </div>
                 </div>
             </div>
         `;
         
-        // Add styles
+        // FIXED: Only add styles once
+        if (!document.getElementById('focusup-styles')) {
+            this.addStyles();
+        }
+        
+        // Add overlay to document
+        document.body.appendChild(overlay);
+        this.overlayVisible = true;
+        
+        // Add event listeners
+        this.setupOverlayEventListeners(overlay, type);
+    }
+    
+    // FIXED: Improved event listener setup
+    setupOverlayEventListeners(overlay, type) {
+        // Close button
+        overlay.querySelector(`[data-close="${type}"]`).addEventListener('click', () => {
+            this.hideOverlay(type);
+        });
+        
+        // Action buttons
+        overlay.querySelectorAll('[data-action]').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const action = e.target.getAttribute('data-action');
+                const overlayType = e.target.getAttribute('data-type');
+                this.handleOverlayAction(action, overlayType);
+            });
+        });
+        
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                this.hideOverlay(type);
+            }
+        });
+    }
+    
+    // FIXED: Handle different overlay actions
+    handleOverlayAction(action, type) {
+        if (type === 'initial') {
+            if (action === 'primary') { // Stay Focused
+                window.history.back();
+            } else if (action === 'secondary') { // Continue (5 min)
+                this.hideOverlay(type);
+                this.requestTemporaryAccess();
+            }
+        } else if (type === '5minute') {
+            if (action === 'primary') { // Get Back to Work
+                this.hideOverlay(type);
+                window.history.back();
+            } else if (action === 'secondary') { // Give me 5 more minutes
+                this.hideOverlay(type);
+                this.requestTemporaryAccess();
+            }
+        }
+    }
+    
+    // FIXED: Request temporary access from background script
+    requestTemporaryAccess() {
+        const hostname = window.location.hostname.toLowerCase().replace(/^www\./, '');
+        
+        chrome.runtime.sendMessage({
+            action: 'grantTempAccess',
+            site: hostname
+        }, (response) => {
+            if (response && response.success) {
+                console.log('Temporary access granted');
+                // Set local session storage as backup
+                this.setTemporaryAccess();
+            }
+        });
+    }
+    
+    hideOverlay(type = 'initial') {
+        const overlay = document.getElementById(`focusup-overlay-${type}`) || 
+                       document.querySelector('.focusup-overlay');
+        if (overlay) {
+            overlay.remove();
+            this.overlayVisible = false;
+        }
+    }
+    
+    setTemporaryAccess() {
+        // Set a temporary access token that expires in 5 minutes
+        const expiryTime = Date.now() + (5 * 60 * 1000);
+        sessionStorage.setItem('focusup-temp-access', expiryTime.toString());
+    }
+    
+    hasTemporaryAccess() {
+        const tempAccess = sessionStorage.getItem('focusup-temp-access');
+        if (!tempAccess) return false;
+        
+        const expiryTime = parseInt(tempAccess);
+        return Date.now() < expiryTime;
+    }
+    
+    // FIXED: Add styles only once
+    addStyles() {
         const styles = `
-            #focusup-overlay {
+            .focusup-overlay {
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -194,6 +347,7 @@ class FocusUpContent {
                 display: flex;
                 gap: 15px;
                 justify-content: center;
+                flex-wrap: wrap;
             }
             
             .focusup-btn {
@@ -227,81 +381,162 @@ class FocusUpContent {
                 background: rgba(255, 255, 255, 0.3);
                 transform: translateY(-2px);
             }
+            
+            /* FIXED: Responsive design for smaller screens */
+            @media (max-width: 600px) {
+                .focusup-modal {
+                    margin: 20px;
+                    padding: 20px;
+                }
+                
+                .focusup-actions {
+                    flex-direction: column;
+                }
+                
+                .focusup-btn {
+                    width: 100%;
+                }
+            }
         `;
         
         // Add styles to document
         const styleSheet = document.createElement('style');
+        styleSheet.id = 'focusup-styles';
         styleSheet.textContent = styles;
         document.head.appendChild(styleSheet);
-        
-        // Add overlay to document
-        document.body.appendChild(overlay);
-        this.overlayVisible = true;
-        
-        // Add event listeners
-        document.getElementById('focusup-close').addEventListener('click', () => {
-            this.hideOverlay();
-        });
-        
-        document.getElementById('focusup-stay-focused').addEventListener('click', () => {
-            window.history.back();
-        });
-        
-        document.getElementById('focusup-continue').addEventListener('click', () => {
-            this.hideOverlay();
-            this.setTemporaryAccess();
-        });
-        
-        // Close on overlay click
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                this.hideOverlay();
-            }
-        });
     }
     
-    hideOverlay() {
-        const overlay = document.getElementById('focusup-overlay');
-        if (overlay) {
-            overlay.remove();
-            this.overlayVisible = false;
-        }
-    }
-    
-    setTemporaryAccess() {
-        // Set a temporary access token that expires in 5 minutes
-        const expiryTime = Date.now() + (5 * 60 * 1000);
-        sessionStorage.setItem('focusup-temp-access', expiryTime.toString());
-    }
-    
-    hasTemporaryAccess() {
-        const tempAccess = sessionStorage.getItem('focusup-temp-access');
-        if (!tempAccess) return false;
-        
-        const expiryTime = parseInt(tempAccess);
-        return Date.now() < expiryTime;
-    }
-    
+    // FIXED: Enhanced message handling
     handleMessage(message, sender, sendResponse) {
+        console.log('Content script received message:', message);
+        
         switch (message.action) {
             case 'showFocusReminder':
-                if (!this.hasTemporaryAccess()) {
-                    this.showFocusOverlay();
+                // Only show if we don't have temporary access and no overlay is visible
+                if (!this.hasTemporaryAccess() && !this.overlayVisible) {
+                    this.showInitialFocusOverlay();
                 }
+                sendResponse({ success: true });
+                break;
+                
+            case 'show5MinuteWarning':
+                // NEW: Handle 5-minute warning from background script
+                if (!this.overlayVisible) {
+                    this.show5MinuteWarning(message.site, message.timeSpent);
+                }
+                sendResponse({ success: true });
                 break;
                 
             case 'settingChanged':
                 this.settings[message.setting] = message.value;
+                
+                // If extension was disabled, hide any visible overlays
+                if (message.setting === 'extensionEnabled' && message.value === false) {
+                    this.hideOverlay('initial');
+                    this.hideOverlay('5minute');
+                }
+                sendResponse({ success: true });
                 break;
+                
+            case 'tempAccessGranted':
+                // NEW: Handle temporary access granted notification
+                console.log('Temporary access granted for this site');
+                this.setTemporaryAccess();
+                this.hideOverlay('initial');
+                this.hideOverlay('5minute');
+                sendResponse({ success: true });
+                break;
+                
+            default:
+                console.log('Unknown message action:', message.action);
+                sendResponse({ success: false, error: 'Unknown action' });
         }
     }
 }
 
+// FIXED: Improved initialization
+let focusUpContent = null;
+
+function initializeFocusUp() {
+    if (focusUpContent) return; // Prevent multiple initializations
+    
+    focusUpContent = new FocusUpContent();
+    console.log('FocusUp content script initialized');
+}
+
 // Initialize content script when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        new FocusUpContent();
-    });
+    document.addEventListener('DOMContentLoaded', initializeFocusUp);
 } else {
-    new FocusUpContent();
+    initializeFocusUp();
 }
+
+// FIXED: Handle dynamic navigation (for SPAs like YouTube)
+let lastUrl = location.href;
+
+// Method 1: Watch for URL changes using MutationObserver
+const urlObserver = new MutationObserver(() => {
+    const url = location.href;
+    if (url !== lastUrl) {
+        console.log('URL changed from', lastUrl, 'to', url);
+        lastUrl = url;
+        handleUrlChange();
+    }
+});
+
+// Method 2: Override pushState and replaceState (YouTube navigation)
+const originalPushState = history.pushState;
+const originalReplaceState = history.replaceState;
+
+history.pushState = function() {
+    originalPushState.apply(history, arguments);
+    setTimeout(handleUrlChange, 100);
+};
+
+history.replaceState = function() {
+    originalReplaceState.apply(history, arguments);
+    setTimeout(handleUrlChange, 100);
+};
+
+// Method 3: Listen for popstate events (back/forward buttons)
+window.addEventListener('popstate', () => {
+    setTimeout(handleUrlChange, 100);
+});
+
+// Method 4: Periodic URL checking as fallback
+let urlCheckInterval = setInterval(() => {
+    const url = location.href;
+    if (url !== lastUrl) {
+        console.log('URL changed detected by interval check');
+        lastUrl = url;
+        handleUrlChange();
+    }
+}, 2000); // Check every 2 seconds
+
+function handleUrlChange() {
+    console.log('Handling URL change to:', location.href);
+    
+    // Reset state for new page/video
+    if (focusUpContent) {
+        focusUpContent.initialOverlayShown = false;
+        
+        // Small delay to let the page content load
+        setTimeout(() => {
+            focusUpContent.checkCurrentSite();
+        }, 500);
+    }
+}
+
+// Start observing DOM changes
+urlObserver.observe(document.body, { 
+    subtree: true, 
+    childList: true 
+});
+
+// Cleanup function
+window.addEventListener('beforeunload', () => {
+    if (urlCheckInterval) {
+        clearInterval(urlCheckInterval);
+    }
+    urlObserver.disconnect();
+});

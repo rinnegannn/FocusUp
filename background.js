@@ -1,6 +1,6 @@
 /*
 -------------------------------------------------------
-Background script for FocusUp Chrome Extension
+Background script for FocusUp Chrome Extension - FIXED
 -------------------------------------------------------
 Project:    SpurHacks
 Team:       23gibbs
@@ -43,7 +43,8 @@ class FocusUpBackground {
             currentSite: null,
             startTime: null,
             tempAccess: new Map(), // Track temporary access per site
-            activeTabId: null
+            activeTabId: null,
+            warningShown: false // NEW: Track if 5-min warning was already shown
         };
         
         // Variable for timer state
@@ -65,7 +66,7 @@ class FocusUpBackground {
         this.loadTimerState();
     }
     
-    // Listerner for chrome activities
+    // Listener for chrome activities
     setupEventListeners() {
         // Listen for tab updates
         chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -111,11 +112,12 @@ class FocusUpBackground {
             periodInMinutes: 1/60 // Every second
         });
         
-        // Site tracking alarm by checking every 30 seconds
+        // FIXED: Site tracking alarm - check every 10 seconds instead of 30
         chrome.alarms.create('siteTrackingCheck', {
             delayInMinutes: 0,
-            periodInMinutes: 0.5 // Every 30 seconds
+            periodInMinutes: 1/6 // Every 10 seconds (1/6 of a minute)
         });
+        
         // Listener for the alarms played on chrome
         chrome.alarms.onAlarm.addListener((alarm) => {
             // If Statement to reset the daily states
@@ -160,17 +162,21 @@ class FocusUpBackground {
     }
     
     startSiteTracking(site, tabId) {
+        // FIXED: Only reset warningShown if it's a different site
+        const resetWarning = this.siteTracking.currentSite !== site;
+        
         this.siteTracking = {
             currentSite: site,
             startTime: Date.now(),
             tempAccess: this.siteTracking.tempAccess, // Preserve existing temp access
-            activeTabId: tabId
+            activeTabId: tabId,
+            warningShown: resetWarning ? false : this.siteTracking.warningShown
         };
-        console.log(`Started tracking ${site}`);
+        console.log(`Started tracking ${site} at ${new Date().toLocaleTimeString()}`);
     }
     
     stopSiteTracking() {
-        // If Statement to stop the cureent site tracking
+        // If Statement to stop the current site tracking
         if (this.siteTracking.currentSite) {
             console.log(`Stopped tracking ${this.siteTracking.currentSite}`);
         }
@@ -178,12 +184,13 @@ class FocusUpBackground {
             currentSite: null,
             startTime: null,
             tempAccess: this.siteTracking.tempAccess, // Preserve temp access
-            activeTabId: null
+            activeTabId: null,
+            warningShown: false
         };
     }
     
     async checkSiteTimeLimit() {
-        // If Statement to check the site time limit
+        // FIXED: More detailed logging and improved logic
         if (!this.siteTracking.currentSite || !this.siteTracking.startTime) {
             return;
         }
@@ -191,26 +198,84 @@ class FocusUpBackground {
         const timeSpent = Date.now() - this.siteTracking.startTime;
         const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
         
-        // If Statement to check if user has been on the site for more than 5 minutes
-        if (timeSpent > fiveMinutes) {
-            console.log(`User has been on ${this.siteTracking.currentSite} for more than 5 minutes`);
+        console.log(`Time spent on ${this.siteTracking.currentSite}: ${Math.floor(timeSpent / 1000)} seconds`);
+        
+        // FIXED: Check if user has been on the site for more than 5 minutes AND warning hasn't been shown
+        if (timeSpent > fiveMinutes && !this.siteTracking.warningShown) {
+            console.log(`TRIGGERING 5-minute warning for ${this.siteTracking.currentSite}`);
+            
+            // Mark warning as shown to prevent spam
+            this.siteTracking.warningShown = true;
+            
             // Try Statement to get the current active tab to send nudge
             try {
                 const tab = await chrome.tabs.get(this.siteTracking.activeTabId);
                 if (tab && tab.url) {
-                    await this.handleDistraction(tab, await this.getSettings());
+                    // FIXED: Show content script overlay instead of just notification
+                    await this.show5MinuteWarning(tab);
+                    
+                    // Also send a message to content script to show overlay
+                    try {
+                        await chrome.tabs.sendMessage(tab.id, { 
+                            action: 'show5MinuteWarning',
+                            site: this.siteTracking.currentSite,
+                            timeSpent: Math.floor(timeSpent / 1000)
+                        });
+                    } catch (contentError) {
+                        console.log('Could not send message to content script, showing notification instead');
+                        // Fallback to notification if content script not available
+                        await this.handleDistraction(tab, await this.getSettings());
+                    }
                 }
             } catch (error) {
                 console.error('Error sending 5-minute nudge:', error);
             }
             
-            // Reset tracking to avoid spamming (will start again on next tab change)
-            this.stopSiteTracking();
+            // FIXED: Don't reset tracking - let user continue but don't spam warnings
         }
     }
     
+    // NEW: Show 5-minute warning
+    async show5MinuteWarning(tab) {
+        const settings = await this.getSettings();
+        
+        // Show notification if enabled
+        if (settings.notifications !== false) {
+            this.show5MinuteNotification();
+        }
+        
+        // If in strict mode, redirect
+        if (settings.strictMode === true) {
+            await this.handleStrictMode(tab);
+        }
+    }
+    
+    // NEW: Show 5-minute specific notification
+    show5MinuteNotification() {
+        const messages = [
+            "You've been here for 5+ minutes! Time to refocus!",
+            "5 minutes flew by! Let's get back to productivity!",
+            "Time check: 5+ minutes on this site. Ready to refocus?",
+            "Gentle reminder: You've spent 5+ minutes here. Time to get back to work!",
+            "Focus alert: 5+ minutes have passed. Your goals are waiting!"
+        ];
+        
+        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+        
+        chrome.notifications.create('focusup-5min-warning', {
+            type: 'basic',
+            iconUrl: 'icon48.png',
+            title: '⏰ 5-Minute Focus Alert',
+            message: randomMessage,
+            buttons: [
+                { title: 'Get Back to Work' },
+                { title: 'Give me 5 more minutes' }
+            ]
+        });
+    }
+    
     async getSettings() {
-        // Try and Catch Statment to get the settings of the extension
+        // Try and Catch Statement to get the settings of the extension
         try {
             return await chrome.storage.sync.get([
                 'extensionEnabled',
@@ -451,7 +516,7 @@ class FocusUpBackground {
     async handleDistraction(tab, settings) {
         const now = Date.now();
         
-        // If statemtent to check cooldown to prevent spam
+        // If statement to check cooldown to prevent spam
         if (now - this.lastNotificationTime < this.notificationCooldown) {
             return;
         }
@@ -492,9 +557,7 @@ class FocusUpBackground {
             "Keep the momentum going!",
             "Your future self will thank you for staying focused.",
             "Every focused minute counts towards your success!",
-            "Discipline today, success tomorrow.",
-            "You've been here for 5+ minutes! Time to refocus!",
-            "5 minutes flew by! Let's get back to productivity!"
+            "Discipline today, success tomorrow."
         ];
         
         const randomMessage = messages[Math.floor(Math.random() * messages.length)];
@@ -613,8 +676,53 @@ class FocusUpBackground {
 // Initialize background script
 const focusUp = new FocusUpBackground();
 
-// Handle notification button clicks
+// FIXED: Handle notification button clicks for 5-minute warning
 chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
+    // Handle 5-minute warning notification
+    if (notificationId === 'focusup-5min-warning') {
+        if (buttonIndex === 0) { // Get Back to Work
+            chrome.notifications.clear(notificationId);
+            // Optionally close the current tab or redirect
+            try {
+                const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (tabs[0]) {
+                    // Option 1: Go back in history
+                    chrome.tabs.executeScript(tabs[0].id, { code: 'window.history.back();' });
+                    
+                    // Option 2: Or redirect to a focus page
+                    // const focusPageUrl = chrome.runtime.getURL('focus.html');
+                    // chrome.tabs.update(tabs[0].id, { url: focusPageUrl });
+                }
+            } catch (error) {
+                console.error('Error handling get back to work:', error);
+            }
+        } else if (buttonIndex === 1) { // Give me 5 more minutes
+            chrome.notifications.clear(notificationId);
+            
+            // Grant temporary access to current site
+            try {
+                const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (tabs[0] && tabs[0].url) {
+                    const url = new URL(tabs[0].url);
+                    const hostname = url.hostname.toLowerCase().replace(/^www\./, '');
+                    focusUp.grantTemporaryAccess(hostname, 5);
+                    
+                    // Show confirmation
+                    chrome.notifications.create({
+                        type: 'basic',
+                        iconUrl: 'icon48.png',
+                        title: '5 More Minutes Granted',
+                        message: 'You have 5 more minutes on this site. Use them wisely!'
+                    });
+                }
+            } catch (error) {
+                console.error('Error granting 5 more minutes:', error);
+            }
+        }
+        return;
+    }
+    
+    // Handle regular focus reminder notifications
     // If Statement when 'Stay Focused' button clicked
     if (buttonIndex === 0) {
         chrome.notifications.clear(notificationId);
