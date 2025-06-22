@@ -1,7 +1,19 @@
-// Content script for FocusPal - runs on all web pages
-class FocusPalContent {
+/*
+-------------------------------------------------------
+Content script for FocusUp Chrome Extension
+-------------------------------------------------------
+Project:    SpurHacks
+Team:       23gibbs
+Date:       2025-06-21
+-------------------------------------------------------
+*/
+
+class FocusUpContent {
+    // Constructor Variables
     constructor() {
+        // Variable for whether or not the content is visible
         this.overlayVisible = false;
+        // Variable for the settings
         this.settings = {};
         this.init();
     }
@@ -20,6 +32,7 @@ class FocusPalContent {
     }
     
     async loadSettings() {
+        // Try and Catch Statement to load the settings
         try {
             this.settings = await chrome.storage.sync.get([
                 'extensionEnabled',
@@ -48,12 +61,7 @@ class FocusPalContent {
             'snapchat.com',
             'discord.com',
             'whatsapp.com',
-            'telegram.org',
-            'news.ycombinator.com',
-            'buzzfeed.com',
-            'imgur.com',
-            '9gag.com',
-            'medium.com'
+            'telegram.org'
         ];
         
         const hostname = window.location.hostname.toLowerCase().replace(/^www\./, '');
@@ -71,23 +79,23 @@ class FocusPalContent {
         if (this.overlayVisible) return;
         
         const overlay = document.createElement('div');
-        overlay.id = 'focuspal-overlay';
+        overlay.id = 'focusup-overlay';
         overlay.innerHTML = `
-            <div class="focuspal-modal">
-                <div class="focuspal-header">
-                    <h2>🎯 Time to Focus!</h2>
-                    <button class="focuspal-close" id="focuspal-close">×</button>
+            <div class="focusup-modal">
+                <div class="focusup-header">
+                    <h2>Time to Focus!</h2>
+                    <button class="focusup-close" id="focusup-close">×</button>
                 </div>
-                <div class="focuspal-content">
+                <div class="focusup-content">
                     <p>You're visiting a potentially distracting site. Remember your goals!</p>
-                    <div class="focuspal-quote">
+                    <div class="focusup-quote">
                         <em>"The successful warrior is the average person with laser-like focus." - Bruce Lee</em>
                     </div>
-                    <div class="focuspal-actions">
-                        <button class="focuspal-btn focuspal-btn-primary" id="focuspal-stay-focused">
+                    <div class="focusup-actions">
+                        <button class="focusup-btn focusup-btn-primary" id="focusup-stay-focused">
                             Stay Focused
                         </button>
-                        <button class="focuspal-btn focuspal-btn-secondary" id="focuspal-continue">
+                        <button class="focusup-btn focusup-btn-secondary" id="focusup-continue">
                             Continue (5 min)
                         </button>
                     </div>
@@ -97,7 +105,7 @@ class FocusPalContent {
         
         // Add styles
         const styles = `
-            #focuspal-overlay {
+            #focusup-overlay {
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -112,7 +120,7 @@ class FocusPalContent {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
             
-            .focuspal-modal {
+            .focusup-modal {
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 border-radius: 20px;
                 padding: 30px;
@@ -120,11 +128,11 @@ class FocusPalContent {
                 width: 90%;
                 color: white;
                 box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-                animation: focuspal-slideIn 0.3s ease-out;
+                animation: focusup-slideIn 0.3s ease-out;
                 position: relative;
             }
             
-            @keyframes focuspal-slideIn {
+            @keyframes focusup-slideIn {
                 from {
                     opacity: 0;
                     transform: translateY(-50px) scale(0.9);
@@ -135,20 +143,20 @@ class FocusPalContent {
                 }
             }
             
-            .focuspal-header {
+            .focusup-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 20px;
             }
             
-            .focuspal-header h2 {
+            .focusup-header h2 {
                 margin: 0;
                 font-size: 24px;
                 font-weight: bold;
             }
             
-            .focuspal-close {
+            .focusup-close {
                 background: rgba(255, 255, 255, 0.2);
                 border: none;
                 color: white;
@@ -163,17 +171,17 @@ class FocusPalContent {
                 transition: background 0.3s ease;
             }
             
-            .focuspal-close:hover {
+            .focusup-close:hover {
                 background: rgba(255, 255, 255, 0.3);
             }
             
-            .focuspal-content p {
+            .focusup-content p {
                 font-size: 16px;
                 margin-bottom: 20px;
                 line-height: 1.5;
             }
             
-            .focuspal-quote {
+            .focusup-quote {
                 background: rgba(255, 255, 255, 0.1);
                 padding: 15px;
                 border-radius: 10px;
@@ -182,13 +190,13 @@ class FocusPalContent {
                 font-style: italic;
             }
             
-            .focuspal-actions {
+            .focusup-actions {
                 display: flex;
                 gap: 15px;
                 justify-content: center;
             }
             
-            .focuspal-btn {
+            .focusup-btn {
                 padding: 12px 24px;
                 border: none;
                 border-radius: 10px;
@@ -199,23 +207,23 @@ class FocusPalContent {
                 min-width: 120px;
             }
             
-            .focuspal-btn-primary {
+            .focusup-btn-primary {
                 background: #4CAF50;
                 color: white;
             }
             
-            .focuspal-btn-primary:hover {
+            .focusup-btn-primary:hover {
                 background: #45a049;
                 transform: translateY(-2px);
             }
             
-            .focuspal-btn-secondary {
+            .focusup-btn-secondary {
                 background: rgba(255, 255, 255, 0.2);
                 color: white;
                 border: 1px solid rgba(255, 255, 255, 0.3);
             }
             
-            .focuspal-btn-secondary:hover {
+            .focusup-btn-secondary:hover {
                 background: rgba(255, 255, 255, 0.3);
                 transform: translateY(-2px);
             }
@@ -231,15 +239,15 @@ class FocusPalContent {
         this.overlayVisible = true;
         
         // Add event listeners
-        document.getElementById('focuspal-close').addEventListener('click', () => {
+        document.getElementById('focusup-close').addEventListener('click', () => {
             this.hideOverlay();
         });
         
-        document.getElementById('focuspal-stay-focused').addEventListener('click', () => {
+        document.getElementById('focusup-stay-focused').addEventListener('click', () => {
             window.history.back();
         });
         
-        document.getElementById('focuspal-continue').addEventListener('click', () => {
+        document.getElementById('focusup-continue').addEventListener('click', () => {
             this.hideOverlay();
             this.setTemporaryAccess();
         });
@@ -253,7 +261,7 @@ class FocusPalContent {
     }
     
     hideOverlay() {
-        const overlay = document.getElementById('focuspal-overlay');
+        const overlay = document.getElementById('focusup-overlay');
         if (overlay) {
             overlay.remove();
             this.overlayVisible = false;
@@ -263,11 +271,11 @@ class FocusPalContent {
     setTemporaryAccess() {
         // Set a temporary access token that expires in 5 minutes
         const expiryTime = Date.now() + (5 * 60 * 1000);
-        sessionStorage.setItem('focuspal-temp-access', expiryTime.toString());
+        sessionStorage.setItem('focusup-temp-access', expiryTime.toString());
     }
     
     hasTemporaryAccess() {
-        const tempAccess = sessionStorage.getItem('focuspal-temp-access');
+        const tempAccess = sessionStorage.getItem('focusup-temp-access');
         if (!tempAccess) return false;
         
         const expiryTime = parseInt(tempAccess);
@@ -292,8 +300,8 @@ class FocusPalContent {
 // Initialize content script when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        new FocusPalContent();
+        new FocusUpContent();
     });
 } else {
-    new FocusPalContent();
+    new FocusUpContent();
 }

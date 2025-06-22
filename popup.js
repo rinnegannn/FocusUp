@@ -1,9 +1,23 @@
-// Popup functionality for FocusPal
-class FocusPalPopup {
+/*
+-------------------------------------------------------
+Popup script for FocusUp Chrome Extension
+-------------------------------------------------------
+Project:    SpurHacks
+Team:       23gibbs
+Date:       2025-06-21
+-------------------------------------------------------
+*/
+
+class FocusUpPopup {
+    // Constructor Variables
     constructor() {
-        this.currentTime = 25 * 60; // Default value, will be synced with background
+        // Variable of the current time of the timer
+        this.currentTime = 25 * 60; // Default value which is synced with background
+        // Variable for if or if not the timer is running
         this.isRunning = false;
+        // Variable for if or if not the timer is paused
         this.isPaused = false;
+        // Variable for whether the interval is updated
         this.updateInterval = null;
         
         this.init();
@@ -35,8 +49,10 @@ class FocusPalPopup {
     }
     
     async syncTimerWithBackground() {
+        // Try and Catch Statement to sync the timer with the background
         try {
             const response = await chrome.runtime.sendMessage({ action: 'getTimerState' });
+            // If Statement to get the timer states when needed
             if (response) {
                 this.currentTime = response.currentTime;
                 this.isRunning = response.isRunning;
@@ -51,23 +67,29 @@ class FocusPalPopup {
     startUpdateLoop() {
         // Listen for timer updates from background
         chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+            // If Statement for when the timer requires an update
             if (message.action === 'timerUpdate') {
                 this.currentTime = message.currentTime;
                 this.isRunning = message.isRunning;
                 this.isPaused = message.isPaused;
                 this.updateTimerUI();
-            } else if (message.action === 'timerCompleted') {
+            }
+            // Else If Statement for when the timer is completed
+            else if (message.action === 'timerCompleted') {
                 this.currentTime = message.currentTime;
                 this.isRunning = message.isRunning;
                 this.isPaused = message.isPaused;
                 this.onTimerCompleted();
-            } else if (message.action === 'updateBlockedCount') {
+            } 
+            // Else If Statement for when updating the blocked count
+            else if (message.action === 'updateBlockedCount') {
                 document.getElementById('blockedCount').textContent = message.count;
             }
         });
     }
     
     async loadData() {
+        // Try and Catch Statement for when loading data
         try {
             const result = await chrome.storage.sync.get([
                 'blockedCount', 
@@ -85,7 +107,7 @@ class FocusPalPopup {
             document.getElementById('extensionStatus').textContent = status;
             
             const toggleButton = document.getElementById('toggleExtension');
-            toggleButton.textContent = result.extensionEnabled !== false ? 'Pause FocusPal' : 'Resume FocusPal';
+            toggleButton.textContent = result.extensionEnabled !== false ? 'Pause FocusUp' : 'Resume FocusUp';
             
             // Update settings toggles
             this.updateToggle('notificationsToggle', result.notifications !== false);
@@ -99,6 +121,7 @@ class FocusPalPopup {
     
     updateToggle(toggleId, isActive) {
         const toggle = document.getElementById(toggleId);
+        // If Statement when the toggle is activated
         if (isActive) {
             toggle.classList.add('active');
         } else {
@@ -107,6 +130,7 @@ class FocusPalPopup {
     }
     
     async toggleSetting(setting) {
+        // Try and Catch Statement when settings are to be toggled
         try {
             const result = await chrome.storage.sync.get(setting);
             const currentValue = result[setting];
@@ -128,6 +152,7 @@ class FocusPalPopup {
     }
     
     async startTimer() {
+        // Try and Catch Statement when the timer has started
         try {
             if (!this.isRunning) {
                 await chrome.runtime.sendMessage({ action: 'startTimer' });
@@ -144,6 +169,7 @@ class FocusPalPopup {
     }
     
     async pauseTimer() {
+        // Try and Catch Statement when timer is paused
         try {
             if (this.isRunning) {
                 await chrome.runtime.sendMessage({ action: 'pauseTimer' });
@@ -156,6 +182,7 @@ class FocusPalPopup {
     }
     
     async resetTimer() {
+        // Try and Catch Statement when timer resets
         try {
             await chrome.runtime.sendMessage({ action: 'resetTimer' });
             this.isRunning = false;
@@ -175,15 +202,20 @@ class FocusPalPopup {
         const startButton = document.getElementById('startTimer');
         const timerLabel = document.getElementById('timerLabel');
         
+        // If Statement when timer is running and paused
         if (this.isRunning && !this.isPaused) {
             startButton.textContent = 'Running...';
             timerLabel.textContent = 'Focus Time Active';
             startButton.disabled = true;
-        } else if (this.isPaused) {
+        }
+        // Else If Statement when only the timer is paused
+        else if (this.isPaused) {
             startButton.textContent = 'Resume';
             timerLabel.textContent = 'Timer Paused';
             startButton.disabled = false;
-        } else {
+        } 
+        // Else Statement for any other case
+        else {
             startButton.textContent = 'Start';
             timerLabel.textContent = 'Pomodoro Timer';
             startButton.disabled = false;
@@ -204,6 +236,7 @@ class FocusPalPopup {
     }
     
     async updateFocusStreakDisplay() {
+        // Try and Catch Statement to update the focus streak
         try {
             const result = await chrome.storage.sync.get('focusStreak');
             document.getElementById('focusStreak').textContent = `${result.focusStreak || 0} min`;
@@ -224,6 +257,7 @@ class FocusPalPopup {
     }
     
     async toggleExtension() {
+        // Try and Catch Statement to toggle any extension
         try {
             const result = await chrome.storage.sync.get('extensionEnabled');
             const currentStatus = result.extensionEnabled !== false;
@@ -232,7 +266,7 @@ class FocusPalPopup {
             await chrome.storage.sync.set({ extensionEnabled: newStatus });
             
             const statusText = newStatus ? 'Active' : 'Paused';
-            const buttonText = newStatus ? 'Pause FocusPal' : 'Resume FocusPal';
+            const buttonText = newStatus ? 'Pause FocusUp' : 'Resume FocusUp';
             
             document.getElementById('extensionStatus').textContent = statusText;
             document.getElementById('toggleExtension').textContent = buttonText;
@@ -251,7 +285,7 @@ class FocusPalPopup {
     toggleSettings() {
         const settingsSection = document.getElementById('settingsSection');
         const button = document.getElementById('openSettings');
-        
+        // If and Else Statment
         if (settingsSection.classList.contains('hidden')) {
             settingsSection.classList.remove('hidden');
             button.textContent = 'Hide Settings';
@@ -262,6 +296,7 @@ class FocusPalPopup {
     }
     
     loadRandomQuote() {
+        // List of Random Quotes
         const quotes = [
             "The way to get started is to quit talking and begin doing. - Walt Disney",
             "Success is not final, failure is not fatal: it is the courage to continue that counts. - Winston Churchill",
@@ -282,5 +317,5 @@ class FocusPalPopup {
 
 // Initialize popup when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new FocusPalPopup();
+    new FocusUpPopup();
 });

@@ -1,6 +1,17 @@
-// Background script for FocusPal Chrome Extension
-class FocusPalBackground {
+/*
+-------------------------------------------------------
+Background script for FocusUp Chrome Extension
+-------------------------------------------------------
+Project:    SpurHacks
+Team:       23gibbs
+Date:       2025-06-21
+-------------------------------------------------------
+*/
+
+class FocusUpBackground {
+    // Constructor Variables
     constructor() {
+        // Variable for the list of sites blocked
         this.distractingSites = [
             'youtube.com',
             'twitter.com',
@@ -16,20 +27,18 @@ class FocusPalBackground {
             'snapchat.com',
             'discord.com',
             'whatsapp.com',
-            'telegram.org',
-            'news.ycombinator.com',
-            'buzzfeed.com',
-            'imgur.com',
-            '9gag.com',
-            'medium.com'
+            'telegram.org'
         ];
-        
+        // Variable for the time of the last notification
         this.lastNotificationTime = 0;
+        // Variable for the cooldown after the last notification
         this.notificationCooldown = 30000; // 30 seconds
+        // Variable for number of sites blocked
         this.blockedToday = 0;
+        // Variable to determine if FocusUp was on
         this.focusMode = false;
         
-        // Site tracking for time limits
+        // Variable for site tracking for time limits
         this.siteTracking = {
             currentSite: null,
             startTime: null,
@@ -37,7 +46,7 @@ class FocusPalBackground {
             activeTabId: null
         };
         
-        // Timer state
+        // Variable for timer state
         this.timerState = {
             isRunning: false,
             isPaused: false,
@@ -56,6 +65,7 @@ class FocusPalBackground {
         this.loadTimerState();
     }
     
+    // Listerner for chrome activities
     setupEventListeners() {
         // Listen for tab updates
         chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -101,18 +111,23 @@ class FocusPalBackground {
             periodInMinutes: 1/60 // Every second
         });
         
-        // Site tracking alarm - check every 30 seconds
+        // Site tracking alarm by checking every 30 seconds
         chrome.alarms.create('siteTrackingCheck', {
             delayInMinutes: 0,
             periodInMinutes: 0.5 // Every 30 seconds
         });
-        
+        // Listener for the alarms played on chrome
         chrome.alarms.onAlarm.addListener((alarm) => {
+            // If Statement to reset the daily states
             if (alarm.name === 'resetDaily') {
                 this.resetDailyStats();
-            } else if (alarm.name === 'timerTick') {
+            } 
+            // Else If Statement when updating the timer
+            else if (alarm.name === 'timerTick') {
                 this.updateTimer();
-            } else if (alarm.name === 'siteTrackingCheck') {
+            } 
+            // Else If Statement when checking site's time limit
+            else if (alarm.name === 'siteTrackingCheck') {
                 this.checkSiteTimeLimit();
             }
         });
@@ -155,6 +170,7 @@ class FocusPalBackground {
     }
     
     stopSiteTracking() {
+        // If Statement to stop the cureent site tracking
         if (this.siteTracking.currentSite) {
             console.log(`Stopped tracking ${this.siteTracking.currentSite}`);
         }
@@ -167,6 +183,7 @@ class FocusPalBackground {
     }
     
     async checkSiteTimeLimit() {
+        // If Statement to check the site time limit
         if (!this.siteTracking.currentSite || !this.siteTracking.startTime) {
             return;
         }
@@ -174,12 +191,11 @@ class FocusPalBackground {
         const timeSpent = Date.now() - this.siteTracking.startTime;
         const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
         
-        // Check if user has been on the site for more than 5 minutes
+        // If Statement to check if user has been on the site for more than 5 minutes
         if (timeSpent > fiveMinutes) {
             console.log(`User has been on ${this.siteTracking.currentSite} for more than 5 minutes`);
-            
+            // Try Statement to get the current active tab to send nudge
             try {
-                // Get the current active tab to send nudge
                 const tab = await chrome.tabs.get(this.siteTracking.activeTabId);
                 if (tab && tab.url) {
                     await this.handleDistraction(tab, await this.getSettings());
@@ -194,6 +210,7 @@ class FocusPalBackground {
     }
     
     async getSettings() {
+        // Try and Catch Statment to get the settings of the extension
         try {
             return await chrome.storage.sync.get([
                 'extensionEnabled',
@@ -216,6 +233,7 @@ class FocusPalBackground {
     }
     
     async loadStoredData() {
+        // Try and Catch Statement for loading the stored data
         try {
             const result = await chrome.storage.sync.get([
                 'blockedCount',
@@ -238,20 +256,23 @@ class FocusPalBackground {
     }
     
     async loadTimerState() {
+        // Try and Catch Statement when loading the process/state of the timer
         try {
             const result = await chrome.storage.local.get('timerState');
             if (result.timerState) {
                 this.timerState = { ...this.timerState, ...result.timerState };
                 
-                // If timer was running when extension was closed, calculate elapsed time
+                // If Statement when timer is running when extension was closed to calculate elapsed time
                 if (this.timerState.isRunning && this.timerState.startTime) {
                     const now = Date.now();
                     const elapsed = Math.floor((now - this.timerState.startTime) / 1000);
                     this.timerState.currentTime = Math.max(0, this.timerState.currentTime - elapsed);
-                    
+                    // If Statement when the timer is completed
                     if (this.timerState.currentTime <= 0) {
                         this.completeTimer();
-                    } else {
+                    } 
+                    // Else Statement when the timer is not completed
+                    else {
                         this.timerState.startTime = now; // Reset start time for accurate future calculations
                         await this.saveTimerState();
                     }
@@ -263,6 +284,7 @@ class FocusPalBackground {
     }
     
     async saveTimerState() {
+        // Try Statement to save current timer process
         try {
             await chrome.storage.local.set({ timerState: this.timerState });
         } catch (error) {
@@ -271,20 +293,22 @@ class FocusPalBackground {
     }
     
     async updateTimer() {
+        // If Statement when updating timer
         if (!this.timerState.isRunning || this.timerState.isPaused) {
             return;
         }
         
         const now = Date.now();
+        // If Statement when time is started
         if (this.timerState.startTime) {
             const elapsed = Math.floor((now - this.timerState.startTime) / 1000);
             const newCurrentTime = Math.max(0, this.timerState.originalTime - elapsed);
-            
+            // If Statement when the new timer is not the same with the current timer
             if (newCurrentTime !== this.timerState.currentTime) {
                 this.timerState.currentTime = newCurrentTime;
                 await this.saveTimerState();
                 
-                // Notify popup if it's open
+                // Try and Catch Statement to notify popup if it's open
                 try {
                     chrome.runtime.sendMessage({ 
                         action: 'timerUpdate', 
@@ -296,6 +320,7 @@ class FocusPalBackground {
                     // Popup might not be open, ignore error
                 }
                 
+                // If Statement when the timer has completed
                 if (this.timerState.currentTime <= 0) {
                     this.completeTimer();
                 }
@@ -315,6 +340,7 @@ class FocusPalBackground {
     }
     
     async pauseTimer() {
+        // If Statement when the timer has the possibility to pause
         if (this.timerState.isRunning && !this.timerState.isPaused) {
             this.timerState.isPaused = true;
             // Calculate remaining time
@@ -323,7 +349,9 @@ class FocusPalBackground {
             this.timerState.currentTime = Math.max(0, this.timerState.originalTime - elapsed);
             await this.saveTimerState();
             console.log('Timer paused in background');
-        } else if (this.timerState.isPaused) {
+        } 
+        // Else If Statement when timer is already paused
+        else if (this.timerState.isPaused) {
             // Resume timer
             this.timerState.isPaused = false;
             this.timerState.startTime = Date.now();
@@ -360,7 +388,7 @@ class FocusPalBackground {
         
         this.showSuccessNotification();
         
-        // Notify popup if it's open
+        // Try and Catch Statement to notify popup if it's open
         try {
             chrome.runtime.sendMessage({ 
                 action: 'timerCompleted',
@@ -376,6 +404,7 @@ class FocusPalBackground {
     }
     
     async updateFocusStreak() {
+        // Try and Catch Statement
         try {
             const result = await chrome.storage.sync.get('focusStreak');
             const newStreak = (result.focusStreak || 0) + 25;
@@ -386,6 +415,7 @@ class FocusPalBackground {
     }
     
     async checkForDistraction(tab) {
+        // Try and Catch Statement
         try {
             const settings = await chrome.storage.sync.get([
                 'extensionEnabled',
@@ -393,7 +423,7 @@ class FocusPalBackground {
                 'strictMode'
             ]);
             
-            // Check if extension is enabled
+            // If Statement to check if extension is enabled
             if (settings.extensionEnabled === false) {
                 return;
             }
@@ -408,7 +438,7 @@ class FocusPalBackground {
             const isDistracting = this.distractingSites.some(site => 
                 cleanHostname.includes(site) || site.includes(cleanHostname)
             );
-            
+            // If Statement when user is distracted
             if (isDistracting) {
                 await this.handleDistraction(tab, settings);
             }
@@ -421,7 +451,7 @@ class FocusPalBackground {
     async handleDistraction(tab, settings) {
         const now = Date.now();
         
-        // Check cooldown to prevent spam
+        // If statemtent to check cooldown to prevent spam
         if (now - this.lastNotificationTime < this.notificationCooldown) {
             return;
         }
@@ -432,17 +462,17 @@ class FocusPalBackground {
         // Update storage
         await chrome.storage.sync.set({ blockedCount: this.blockedToday });
         
-        // Show notification if enabled
+        // If Statement to show notification if enabled
         if (settings.notifications !== false) {
             this.showFocusReminder(tab);
         }
         
-        // In strict mode, close the tab or redirect
+        // If Statement when in strict mode to close the tab or redirect
         if (settings.strictMode === true) {
             this.handleStrictMode(tab);
         }
         
-        // Send message to popup if it's open
+        // Try and Catch Statement to send message to popup if it's open
         try {
             chrome.runtime.sendMessage({ 
                 action: 'updateBlockedCount', 
@@ -455,16 +485,16 @@ class FocusPalBackground {
     
     showFocusReminder(tab) {
         const messages = [
-            "🎯 Time to refocus! Let's get back to work.",
-            "⏰ Taking a break? Remember your goals!",
-            "🚀 Stay productive! You've got this!",
-            "💪 Focus mode activated. You're stronger than the distraction!",
-            "🔥 Keep the momentum going!",
-            "✨ Your future self will thank you for staying focused.",
-            "🎉 Every focused minute counts towards your success!",
-            "🌟 Discipline today, success tomorrow.",
-            "⚡ You've been here for 5+ minutes! Time to refocus!",
-            "🕒 5 minutes flew by! Let's get back to productivity!"
+            "Time to refocus! Let's get back to work.",
+            "Taking a break? Remember your goals!",
+            "Stay productive! You've got this!",
+            "Focus mode activated. You're stronger than the distraction!",
+            "Keep the momentum going!",
+            "Your future self will thank you for staying focused.",
+            "Every focused minute counts towards your success!",
+            "Discipline today, success tomorrow.",
+            "You've been here for 5+ minutes! Time to refocus!",
+            "5 minutes flew by! Let's get back to productivity!"
         ];
         
         const randomMessage = messages[Math.floor(Math.random() * messages.length)];
@@ -472,7 +502,7 @@ class FocusPalBackground {
         chrome.notifications.create({
             type: 'basic',
             iconUrl: 'icon48.png',
-            title: 'FocusPal Reminder',
+            title: 'FocusUp Reminder',
             message: randomMessage,
             buttons: [
                 { title: 'Stay Focused' },
@@ -484,7 +514,7 @@ class FocusPalBackground {
     async handleStrictMode(tab) {
         // In strict mode, redirect to a focus page or close tab
         const focusPageUrl = chrome.runtime.getURL('focus.html');
-        
+        // Try and Catch Statement to update chrome tabs
         try {
             await chrome.tabs.update(tab.id, { url: focusPageUrl });
         } catch (error) {
@@ -557,7 +587,7 @@ class FocusPalBackground {
         chrome.notifications.create({
             type: 'basic',
             iconUrl: 'icon48.png',
-            title: '🎉 Focus Session Complete!',
+            title: 'Focus Session Complete!',
             message: 'Great job! You completed a 25-minute focus session. Take a well-deserved break!'
         });
     }
@@ -581,24 +611,24 @@ class FocusPalBackground {
 }
 
 // Initialize background script
-const focusPal = new FocusPalBackground();
+const focusUp = new FocusUpBackground();
 
 // Handle notification button clicks
 chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
+    // If Statement when 'Stay Focused' button clicked
     if (buttonIndex === 0) {
-        // Stay Focused clicked - close notification
         chrome.notifications.clear(notificationId);
+    // Else If Statement when 5 min break button clicked
     } else if (buttonIndex === 1) {
-        // Take 5 min break clicked
         chrome.notifications.clear(notificationId);
         
-        // Grant temporary access to current site
+        // Try and Catch Statement to grant temporary access to current site
         try {
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             if (tabs[0] && tabs[0].url) {
                 const url = new URL(tabs[0].url);
                 const hostname = url.hostname.toLowerCase().replace(/^www\./, '');
-                focusPal.grantTemporaryAccess(hostname, 5);
+                focusUp.grantTemporaryAccess(hostname, 5);
             }
         } catch (error) {
             console.error('Error granting temp access from notification:', error);
@@ -628,4 +658,4 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     }
 });
 
-console.log('FocusPal background script initialized');
+console.log('FocusUp background script initialized');

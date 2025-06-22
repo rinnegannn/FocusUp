@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "FocusPal",
+  "name": "FocusUp",
   "version": "1.0.0",
-  "description": "Stay productive with gentle nudges when you visit distracting websites",
+  "description": "Stay productive, Stay focused. Avoid distracting websites.",
   "permissions": [
     "tabs",
     "activeTab",
@@ -10,12 +10,16 @@
     "notifications",
     "alarms"
   ],
+  "icons": {
+    "100": "focusup-icon.png"
+  },
   "background": {
     "service_worker": "background.js"
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "FocusPal - Stay Focused"
+    "default_title": "FocusUp - Stay Focused",
+    "default_icon": "focusup-icon.png"
   },
   "content_scripts": [
     {
