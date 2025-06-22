@@ -1,88 +1,137 @@
-## FocusUp - Chrome Extension
+# FocusUp - Chrome Extension
 
-A productivity-focused Chrome extension that helps you stay focused by detecting distracting websites and providing gentle nudges to refocus.
-
-## Features
-
-- **Real-time Distraction Detection**: Monitors your browsing and detects when you visit potentially distracting websites
-- **Gentle Nudges**: Shows friendly reminders and motivational quotes when distractions are detected
-- **Pomodoro Timer**: Built-in 25-minute focus timer with break notifications
-- **Daily Statistics**: Track blocked distractions and focus streaks
-- **Customizable Settings**: Toggle notifications, sound alerts, and strict mode
-- **Strict Mode**: Automatically redirects from distracting sites to a focus page
-- **Beautiful UI**: Modern, gradient-based design with smooth animations
-
-## Installation
-
-### For Development/Testing:
-
-1. **Download the Extension Files**
-   - Save all the provided files (`manifest.json`, `popup.html`, `popup.js`, `background.js`, `content.js`, `focus.html`) in a single folder
-
-2. **Load Extension in Chrome**
-   - Open Chrome and go to `chrome://extensions/`
-   - Enable "Developer mode" (top right toggle)
-   - Click "Load unpacked"
-   - Select the folder containing your extension files
-   - The FocusPal extension should now appear in your extensions list
-
-3. **Pin the Extension**
-   - Click the puzzle piece icon in Chrome's toolbar
-   - Find FocusPal and click the pin icon to keep it visible
-
-## How to Use
-
-### Basic Usage
-- **Automatic Detection**: FocusPal runs automatically and monitors your browsing
-- **Click Extension Icon**: Access the popup to view stats and controls
-- **Start Focus Timer**: Use the built-in Pomodoro timer for structured work sessions
-
-### Settings & Customization
-- **Toggle Extension**: Pause/resume FocusPal from the popup
-- **Notifications**: Enable/disable browser notifications
-- **Sound Alerts**: Toggle audio notifications (requires implementation)
-- **Strict Mode**: Automatically redirect from distracting sites
-
-### Distraction Handling
-When you visit a distracting site, FocusPal will:
-- Show a notification reminder (if enabled)
-- Display a focus overlay on the page
-- In strict mode: redirect to the focus page
-- Track the distraction in your daily stats
-
-## Technical Details
-
-### Permissions Used
-- `tabs`: Monitor active tabs and URLs
-- `activeTab`: Access current tab information
-- `storage`: Save user settings and statistics
-- `notifications`: Show focus reminders
-
-### Default Distracting Sites
-FocusPal monitors these sites by default:
-- Social Media: YouTube, Twitter/X, Facebook, Instagram, TikTok, LinkedIn
-- Entertainment: Netflix, Twitch, Pinterest, Discord
-- News/Forums: Reddit
-- Communication: WhatsApp, Telegram, Snapchat
-
-## Future Enhancements
-
-Potential features to add:
-- **AI-Powered Quotes**: Integration with OpenAI API for personalized motivation
-- **Custom Site Management**: UI for adding/removing distracting sites
-- **Focus Analytics**: Detailed productivity reports and trends
-- **Website Blocking**: Complete blocking instead of just notifications
-- **Team Features**: Share focus goals with friends or colleagues
-- **Integration**: Connect with productivity apps like Todoist, Notion
-
-## License
-
-This project is open source and available under the MIT License.
-
-## Contributing
-
-Feel free to submit issues, feature requests, or pull requests to improve FocusPal!
+**FocusUp** is a productivity-focused Chrome extension that helps you stay on track by detecting distracting websites and providing gentle nudges to refocus.
 
 ---
 
-**Happy Focusing!**
+## 🚀 Features
+
+- **🔍 Real-time Distraction Detection**  
+  Monitors your browsing activity and detects visits to potentially distracting websites.
+
+- **💬 Gentle Nudges**  
+  Displays friendly reminders and motivational quotes when distractions are detected.
+
+- **⏱️ Pomodoro Timer**  
+  Built-in 25-minute focus timer with break notifications to promote structured work sessions.
+
+- **📊 Daily Statistics**  
+  Tracks distractions blocked and logs your daily focus streaks.
+
+- **⚙️ Customizable Settings**  
+  Toggle notifications, sound alerts, and enable/disable strict mode.
+
+- **🚫 Strict Mode**  
+  Automatically redirects you from distracting sites to a focus-friendly page.
+
+- **🎨 Beautiful UI**  
+  Sleek, gradient-based modern design with smooth animations and intuitive layout.
+
+---
+
+## 🧩 Installation
+
+### Development / Testing
+
+1. **Download the Extension Files**  
+   Save all files (`manifest.json`, `popup.html`, `popup.js`, `background.js`, `content.js`, `focus.html`) in a single folder.
+
+2. **Load the Extension in Chrome**  
+   - Open Chrome and go to `chrome://extensions/`  
+   - Enable **Developer mode** (top right toggle)  
+   - Click **Load unpacked**  
+   - Select the folder containing your extension files  
+   - **FocusUp** should now appear in your extensions list
+
+3. **Pin the Extension**  
+   - Click the puzzle piece icon in Chrome’s toolbar  
+   - Find **FocusUp** and click the pin icon to keep it visible
+
+---
+
+## 💡 How to Use
+
+### Basic Usage
+
+- **Automatic Monitoring**  
+  FocusUp runs automatically and monitors your browsing in the background.
+
+- **Access the Popup**  
+  Click the extension icon to view statistics and use the Pomodoro timer.
+
+- **Start a Focus Session**  
+  Use the Pomodoro timer to structure your productivity with breaks.
+
+### Settings & Customization
+
+- **Toggle Monitoring**  
+  Pause or resume FocusUp from the popup.
+
+- **Browser Notifications**  
+  Enable/disable visual reminders when visiting distracting sites.
+
+- **Sound Alerts** *(planned)*  
+  Toggle audio reminders to enhance awareness.
+
+- **Strict Mode**  
+  Instantly redirects from distracting sites to a dedicated focus page.
+
+### Distraction Handling
+
+When you visit a distracting site, FocusUp may:
+
+- Show a motivational quote or reminder (if notifications are enabled)  
+- Overlay a focus message directly on the page  
+- Redirect you to a focus page (in strict mode)  
+- Log the event in your daily statistics
+
+---
+
+## 🔐 Technical Details
+
+### Permissions Used
+
+- `tabs`: Detect and monitor active website URLs  
+- `activeTab`: Access information about the currently open tab  
+- `storage`: Store user settings and usage data  
+- `notifications`: Display focus-related reminders
+
+### Default Distracting Sites
+
+FocusUp monitors these sites by default (editable in future updates):
+
+- **Social Media**: YouTube, Twitter/X, Facebook, Instagram, TikTok, LinkedIn  
+- **Entertainment**: Netflix, Twitch, Pinterest, Discord  
+- **News/Forums**: Reddit  
+- **Messaging**: WhatsApp, Telegram, Snapchat
+
+---
+
+## 🔮 Future Enhancements
+
+Some planned and possible future features:
+
+- **AI-Powered Quotes**: Use OpenAI to generate personalized motivation  
+- **Custom Distraction List**: Add or remove distracting sites in a settings panel  
+- **Productivity Analytics**: Visual charts and insights about your focus habits  
+- **Full Site Blocking**: Not just redirection—complete block options  
+- **Team Mode**: Set and share focus goals with friends or coworkers  
+- **App Integrations**: Sync with Todoist, Notion, Trello, and others
+
+---
+
+## 📄 License
+
+This project is open-source under the **MIT License**.  
+Feel free to use, modify, and distribute it responsibly.
+
+---
+
+## 🤝 Contributing
+
+Have an idea or found a bug?  
+Submit an issue or open a pull request—we welcome contributions!
+
+---
+
+**Happy Focusing with FocusUp! 🚀**
